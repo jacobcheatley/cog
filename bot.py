@@ -36,6 +36,7 @@ async def load(*, module: str):
     else:
         await bot.say('\N{OK HAND SIGN}')
 
+
 @bot.command(hidden=True)
 @checks.is_owner()
 async def unload(*, module: str):
@@ -46,6 +47,7 @@ async def unload(*, module: str):
         await bot.say(f'Failed. {type(e).__name__} - {e}', delete_after=10)
     else:
         await bot.say('\N{OK HAND SIGN}')
+
 
 @bot.command(name='reload', hidden=True)
 @checks.is_owner()
@@ -66,13 +68,10 @@ if __name__ == '__main__':
 
     token = credentials['token']
 
-    bot.remove_command('help')
-
     for extension in initial_extensions:
         try:
             bot.load_extension(extension)
         except Exception as e:
             print(f'FAIL LOADING {extension}\n{type(e).__name__}: {e}')
-
 
     bot.run(token)

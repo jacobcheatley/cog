@@ -2,5 +2,9 @@
 *.iml
 out
 gen
+temp
+
+__pycache__/
+*.pyc
 
 credentials.json
