@@ -13,6 +13,8 @@ status_emoji = {
 
 
 class Info:
+    """Gives information on various things."""
+
     def __init__(self, bot):
         self.bot = bot
         self.user_db = database.Database('user.json', loop=bot.loop)
@@ -32,8 +34,8 @@ class Info:
     async def show_whois(self, member: discord.Member):
         embed = discord.Embed()
         # Discord Info
-        embed.set_author(name=f'{member.display_name}#{member.discriminator}', icon_url=member.avatar_url,
-                         url=member.avatar_url)
+        embed.set_author(name=f'{member.display_name}#{member.discriminator}', icon_url=member.avatar_url or member.default_avatar_url,
+                         url=member.avatar_url or member.default_avatar_url)
         embed.colour = member.colour
         embed.add_field(name='Username', value=member.name)
         embed.add_field(name='Nickname', value=member.nick)
@@ -197,8 +199,8 @@ class Info:
         embed = discord.Embed()
         # Top
         embed.title = 'Cog Bot'
-        embed.description = f'Made by <@{config.owner_id}>.'
-        embed.set_author(name=str(self.bot.user), icon_url=self.bot.user.avatar_url)
+        embed.description = f'Made by <@!{config.owner_id}>.'
+        embed.set_author(name=str(self.bot.user), icon_url=self.bot.user.avatar_url or self.bot.user.default_avatar_url)
         embed.colour = 0x738bd7
 
         # Fields
