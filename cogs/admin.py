@@ -63,7 +63,10 @@ class Admin:
     @commands.group(no_pm=True, pass_context=True)
     @checks.permissions(manage_messages=True)
     async def remove(self, ctx: commands.Context):
-        """Removes messages (in the last 50 messages by default) that meet a criteria."""
+        """Removes messages that meet a criteria.
+
+        This acts upon the last 50 messages by default, but all subcommands can be passed a search count and it will
+        act on that many messages instead. """
 
         if ctx.invoked_subcommand is None:
             await self.bot.say(f'Invalid criteria \'{ctx.subcommand_passed}\'')

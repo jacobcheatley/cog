@@ -5,7 +5,7 @@ import asyncio
 
 
 class Database:
-    """The "database" object. Internally based on ``json``.
+    """The "database" object. Internally based on json.
     Taken from RoboDanny"""
 
     def __init__(self, name, **options):
