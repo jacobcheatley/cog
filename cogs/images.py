@@ -101,12 +101,13 @@ class Images:
             result = await self.do_jpegify(url)
             if result is not False:
                 await self.bot.upload(result, filename='doilooklikeiknowwhatthisis.jpg')
+                return
         else:
             async for url in self.get_recent_images(ctx.message.channel):
                 result = await self.do_jpegify(url)
                 if result is not False:
                     await self.bot.upload(result, filename='doilooklikeiknowwhatthisis.jpg')
-                return
+                    return
         await self.bot.say('Couldn\'t find an image.', delete_after=10)
 
 
