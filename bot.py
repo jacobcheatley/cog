@@ -1,10 +1,11 @@
 from discord.ext import commands
-from cogs.utils import config, checks
+from cogs.utils import config, checks, funcs
 import datetime
 import json
 
 initial_extensions = [
     'cogs.admin',
+    'cogs.fun',
     'cogs.images',
     'cogs.info',
     'cogs.tags',
@@ -18,6 +19,7 @@ bot = commands.Bot(**config.bot_kwargs)
 async def on_ready():
     print(f'Logged in as {bot.user.name} - ID: {bot.user.id}')
     bot.uptime = datetime.datetime.utcnow()
+    bot.funcs = funcs.Funcs(bot)
 
 
 @bot.event

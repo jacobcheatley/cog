@@ -78,7 +78,7 @@ class Images:
                         yield url
 
     async def do_jpegify(self, url):
-        b = await funcs.bytes_download(url)
+        b = await self.bot.funcs.bytes_download(url)
         if not b:
             await self.bot.say('Failed to parse data from URL.', delete_after=10)
             return False
