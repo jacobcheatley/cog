@@ -68,6 +68,15 @@ class Images:
 
         await self.bot.upload(final(image), filename='retarded.png')
 
+    async def get_recent_images(self, channel):
+        async for message in self.bot.logs_from(channel, limit=10):
+            to_check = [message.attachments, message.embeds]
+            for _list in to_check:
+                if _list:
+                    if 'width' in _list[0] or ('type' in _list[0] and _list[0]['type'] == 'image'):
+                        url = _list[0]['url']
+                        yield url
+
     async def do_jpegify(self, url):
         b = await funcs.bytes_download(url)
         if not b:
@@ -84,7 +93,7 @@ class Images:
             result = final(image, 'jpeg', quality=1)
             return result
 
-    @commands.command(pass_context=True, aliases=['jpegify'])
+    @commands.command(pass_context=True, aliases=['jpegify', 'jpeg'])
     async def needsmorejpeg(self, ctx: commands.Context, url: str = None):
         """Makes an image into a low quality jpeg. URL, attachment or recent images."""
 
@@ -93,16 +102,11 @@ class Images:
             if result is not False:
                 await self.bot.upload(result, filename='doilooklikeiknowwhatthisis.jpg')
         else:
-            async for message in self.bot.logs_from(ctx.message.channel, limit=10):
-                to_check = [message.attachments, message.embeds]
-                for _list in to_check:
-                    if _list:
-                        if 'width' in _list[0] or ('type' in _list[0] and _list[0]['type'] == 'image'):
-                            url = _list[0]['url']
-                            result = await self.do_jpegify(url)
-                            if result is not False:
-                                await self.bot.upload(result, filename='doilooklikeiknowwhatthisis.jpg')
-                            return
+            async for url in self.get_recent_images(ctx.message.channel):
+                result = await self.do_jpegify(url)
+                if result is not False:
+                    await self.bot.upload(result, filename='doilooklikeiknowwhatthisis.jpg')
+                return
         await self.bot.say('Couldn\'t find an image.', delete_after=10)
 
 
