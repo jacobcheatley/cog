@@ -5,8 +5,10 @@ import json
 
 initial_extensions = [
     'cogs.admin',
+    'cogs.images',
     'cogs.info',
-    'cogs.tags'
+    'cogs.tags',
+    'cogs.utility'
 ]
 
 bot = commands.Bot(**config.bot_kwargs)
