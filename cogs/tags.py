@@ -1,9 +1,10 @@
 import discord
 from discord.ext import commands
-from .utils import database, config, paginator
+from .utils import database, config, paginator, checks
 import json
 import datetime
 import difflib
+import random
 
 
 class TagInfo:
@@ -62,12 +63,17 @@ def tag_decoder(obj):
 
 
 class Tags:
-    """Tag related commands (o rly?)"""
+    """Tag related commands (o rly?). !help tag would be more useful."""
 
     def __init__(self, bot):
         self.bot = bot
         self.db = database.Database('tags.json', encoder=TagEncoder, object_hook=tag_decoder, loop=bot.loop,
                                     load_later=True)
+        try:
+            with open('featured.txt', 'r') as f:
+                self.featured = f.readline()
+        except FileNotFoundError:
+            self.featured = 'No featured tag.'
 
     @staticmethod
     def clean_tag_content(content):
@@ -98,7 +104,6 @@ class Tags:
 
         tag.uses += 1
         await self.bot.say(tag)
-
         await self.db.put(tag.name, tag)
 
     @tag.error
@@ -155,7 +160,7 @@ class Tags:
         embed.add_field(name='Number of Tags', value=total_tags)
         total_uses = sum(t.uses for t in all_tag_infos)
         embed.add_field(name='Total Tag Uses', value=total_uses)
-        embed.add_field(name='Featured Tag', value='PLACEHOLDER')
+        embed.add_field(name='Featured Tag', value=self.featured)
 
         for emoji, tag in self.top_three_tags():
             embed.add_field(name=f'{emoji} Tag', value=f'{tag.name} ({tag.uses} uses)')
@@ -218,11 +223,11 @@ class Tags:
     @info.error
     async def info_error(self, error, ctx):
         if isinstance(error, commands.MissingRequiredArgument):
-            await self.bot.say('Missing tag name to get info for.')
+            await self.bot.say('Missing tag name to get info for.', delete_after=10)
 
-    async def show_tags_list(self, tags, ctx):
+    async def show_tags_list(self, tags, ctx, per_parge=15):
         try:
-            p = paginator.Pages(self.bot, message=ctx.message, entries=tags, per_page=15)
+            p = paginator.Pages(self.bot, message=ctx.message, entries=tags, per_page=per_parge)
             p.embed.colour = 0x738bd7
             await p.paginate()
         except Exception as e:
@@ -236,21 +241,80 @@ class Tags:
         tags = [tag.name for tag in self.db.all().values() if tag.owner == owner.id]
         tags.sort()
 
-        await self.show_tags_list(tags, ctx)
+        if tags:
+            await self.show_tags_list(tags, ctx)
+        else:
+            await self.bot.say('No tag found.', delete_after=10)
 
     @tag.command(name='all', pass_context=True)
     async def _all(self, ctx):
-        """Lists ALL THE TAGS ranked by usage."""
+        """Lists ALL THE TAGS alphabetically."""
 
-        tags = [tag.name for tag in sorted(self.db.all().values(), key=lambda t: t.uses, reverse=True)]
+        tags = [tag_name for tag_name in self.db.all().keys()]
+        tags.sort()
 
         await self.show_tags_list(tags, ctx)
 
     @tag.command(pass_context=True)
+    async def top(self, ctx, *, count: int = 10):
+        """Lists the top n tags."""
+        tags = [tag.name for tag in sorted(self.db.all().values(), key=lambda t: t.uses, reverse=True)]
+
+        count = min(max(10, count), len(tags))
+
+        await self.show_tags_list(tags[:count], ctx, per_parge=10)
+
+    @tag.command(pass_context=True)
     async def search(self, ctx, *, query: str):
-        """Searches for a tag by substring or close match.
+        """Searches for a tag by substring.
         The query must be at least 2 characters."""
-        pass
+
+        if len(query) < 2:
+            return await self.bot.say('Query must be at least 2 characters.', delete_after=10)
+
+        tags = [tag_name for tag_name in self.db.all().keys() if query in tag_name]
+        tags.sort()
+
+        if tags:
+            await self.show_tags_list(tags, ctx)
+        else:
+            await self.bot.say('No tags found.', delete_after=10)
+
+    @search.error
+    async def search_error(self, error, ctx):
+        if isinstance(error, commands.MissingRequiredArgument):
+            await self.bot.say('Missing query.', delete_after=10)
+
+    @tag.command(name='random', pass_context=True)
+    async def _random(self, ctx, *, query: str):
+        """Shows a random tag containing a substring."""
+
+        if len(query) < 2:
+            return await self.bot.say('Query must be at least 2 characters.', delete_after=10)
+
+        tags = [tag for tag in self.db.all().values() if query in tag.name]
+
+        if tags:
+            tag = random.choice(tags)
+            tag.uses += 1
+            await self.bot.say(f'Randomly selected *"{tag.name}"*:\n{tag}')
+            await self.db.put(tag.name, tag)
+        else:
+            await self.bot.say('No tags found.', delete_after=10)
+
+    @_random.error
+    async def random_error(self, error, ctx):
+        if isinstance(error, commands.MissingRequiredArgument):
+            await self.bot.say('Missing query.', delete_after=10)
+
+    @tag.command()
+    @checks.is_owner()
+    async def feature(self, *, name: str):
+        """Sets a tag to be the featured tag."""
+        self.featured = name
+
+        with open('featured.txt', 'w') as f:
+            f.write(self.featured)
 
 
 def setup(bot):
