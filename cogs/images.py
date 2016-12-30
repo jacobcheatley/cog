@@ -1,13 +1,15 @@
 import discord
 from discord.ext import commands
-from PIL import Image
+from .utils import funcs
+from PIL import Image, ImageFont, ImageDraw
 import io
 import re
+import textwrap
 
 
-def final(image: Image):
+def final(image: Image, fmt='png', **kwargs):
     result = io.BytesIO()
-    image.save(result, 'png')
+    image.save(result, fmt, **kwargs)
     result.seek(0)
     return result
 
@@ -41,9 +43,67 @@ class Images:
 
         if result is not None:
             image = Image.new('RGB', (128, 128), result)
-            await self.bot.upload(final(image), filename='test.png', content=colour)
+            await self.bot.upload(final(image), filename='colour.png', content=colour)
         else:
             await self.bot.say('Couldn\'t understand that colour format. U WOT M8.', delete_after=10)
+
+    def reline(self, text, width, max_lines):
+        wrapped = textwrap.wrap(text, width=width)
+        if len(wrapped) <= max_lines:
+            return wrapped
+
+        wrapped = wrapped[:max_lines]
+        wrapped[-1] += '...'
+        return wrapped
+
+    @commands.command()
+    async def retarded(self, *, text: str):
+        """Makes a comic with text and that cute retarded dog."""
+
+        image = Image.open('resource/retarded.png')
+        draw = ImageDraw.Draw(image)
+        font = ImageFont.truetype('Times_New_Roman_Bold.ttf', 26)
+        lines = self.reline(text, 25, 6)
+        draw.text((340, 120-21*len(lines)), '\n'.join(lines), font=font)
+
+        await self.bot.upload(final(image), filename='retarded.png')
+
+    async def do_jpegify(self, url):
+        b = await funcs.bytes_download(url)
+        if not b:
+            await self.bot.say('Failed to parse data from URL.', delete_after=10)
+            return False
+        try:
+            image = Image.open(b)
+        except:
+            await self.bot.say('Failed to parse data from URL.', delete_after=10)
+            return False
+        else:
+            o_size = image.size
+            image = image.resize((image.size[0]//2, image.size[1]//2)).resize(o_size)
+            result = final(image, 'jpeg', quality=1)
+            return result
+
+    @commands.command(pass_context=True, aliases=['jpegify'])
+    async def needsmorejpeg(self, ctx: commands.Context, url: str = None):
+        """Makes an image into a low quality jpeg. URL, attachment or recent images."""
+
+        if url:
+            result = await self.do_jpegify(url)
+            if result is not False:
+                await self.bot.upload(result, filename='doilooklikeiknowwhatthisis.jpg')
+        else:
+            async for message in self.bot.logs_from(ctx.message.channel, limit=10):
+                to_check = [message.attachments, message.embeds]
+                for _list in to_check:
+                    if _list:
+                        if 'width' in _list[0] or ('type' in _list[0] and _list[0]['type'] == 'image'):
+                            url = _list[0]['url']
+                            result = await self.do_jpegify(url)
+                            if result is not False:
+                                await self.bot.upload(result, filename='doilooklikeiknowwhatthisis.jpg')
+                            return
+        await self.bot.say('Couldn\'t find an image.', delete_after=10)
 
 
 def setup(bot):
