@@ -1,3 +1,4 @@
+import discord
 from discord.ext import commands
 from cogs.utils import config, checks, funcs
 import datetime
@@ -5,6 +6,7 @@ import json
 
 initial_extensions = [
     'cogs.admin',
+    'cogs.forwarding',
     'cogs.fun',
     'cogs.images',
     'cogs.info',
@@ -92,11 +94,32 @@ async def setcogavatar(url: str):
         await bot.say('Failed to update avatar.', delete_after=10)
 
 
+@bot.command(hidden=True)
+@checks.is_owner()
+async def join():
+    """Gets an invite link to join another server."""
+    perms = discord.Permissions.none()
+    perms.read_messages = True
+    perms.send_messages = True
+    perms.manage_roles = True
+    perms.ban_members = True
+    perms.kick_members = True
+    perms.manage_messages = True
+    perms.embed_links = True
+    perms.read_message_history = True
+    perms.attach_files = True
+    perms.add_reactions = True
+    perms.external_emojis = True
+    perms.mention_everyone = True
+    await bot.say(discord.utils.oauth_url(bot.client_id, perms))
+
+
 if __name__ == '__main__':
     with open('credentials.json') as f:
         credentials = json.load(f)
 
     token = credentials['token']
+    bot.client_id = credentials['client_id']
 
     for extension in initial_extensions:
         try:
