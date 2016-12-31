@@ -15,9 +15,11 @@ class Funcs:
                     data = await resp.read()
                     b = io.BytesIO(data)
                     b.seek(0)
+                    session.close()
                     return b
         except asyncio.TimeoutError:
+            session.close()
             return False
-        except Exception as e:
-            print(e)
+        except:
+            session.close()
             return False

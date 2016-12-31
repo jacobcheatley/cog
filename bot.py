@@ -67,6 +67,31 @@ async def _reload(*, module: str):
         await bot.say('\N{OK HAND SIGN}')
 
 
+@bot.command(hidden=True)
+@checks.is_owner()
+async def setcogname(name: str):
+    """Changes Cog's username."""
+    try:
+        await bot.edit_profile(username=name)
+    except:
+        await bot.say('Failed to update username.')
+
+
+@bot.command(hidden=True)
+@checks.is_owner()
+async def setcogavatar(url: str):
+    """Changes Cog's avatar."""
+    b = await bot.funcs.bytes_download(url)
+    if b:
+        byte = b.getvalue()
+        try:
+            await bot.edit_profile(avatar=byte)
+        except:
+            await bot.say('Failed to update avatar.', delete_after=10)
+    else:
+        await bot.say('Failed to update avatar.', delete_after=10)
+
+
 if __name__ == '__main__':
     with open('credentials.json') as f:
         credentials = json.load(f)
