@@ -18,7 +18,6 @@ class Replies:
 
         r_matches = r_regex.findall(message.content)
         if r_matches:
-            print(r_matches)
             subs = ['https://www.reddit.com/{}/{}'.format(*sub) for sub in r_matches]
 
         if subs:

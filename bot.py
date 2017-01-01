@@ -4,16 +4,6 @@ from cogs.utils import config, checks, funcs
 import datetime
 import json
 
-initial_extensions = [
-    'cogs.admin',
-    'cogs.forwarding',
-    'cogs.fun',
-    'cogs.images',
-    'cogs.info',
-    'cogs.tags',
-    'cogs.utility'
-]
-
 bot = commands.Bot(**config.bot_kwargs)
 
 
@@ -121,7 +111,7 @@ if __name__ == '__main__':
     token = credentials['token']
     bot.client_id = credentials['client_id']
 
-    for extension in initial_extensions:
+    for extension in config.initial_extensions:
         try:
             bot.load_extension(extension)
         except Exception as e:
