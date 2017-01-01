@@ -69,42 +69,53 @@ class Tags:
         self.bot = bot
         self.db = database.Database('tags.json', encoder=TagEncoder, object_hook=tag_decoder, loop=bot.loop,
                                     load_later=True)
-        try:
-            with open('featured.txt', 'r') as f:
-                self.featured = f.readline()
-        except FileNotFoundError:
-            self.featured = 'No featured tag.'
 
     @staticmethod
     def clean_tag_content(content):
         return content.replace('@everyone', '@\u200beveryone').replace('@here', '@\u200bhere')
 
-    def get_tag(self, name):
-        all_tags = self.db.all()
+    def get_tag(self, server, name):
+        server_tags = self.db.get(server.id, {})
         try:
-            return all_tags[name]
+            return server_tags[name]
         except KeyError:
-            possible_matches = difflib.get_close_matches(name, tuple(all_tags.keys()))
+            possible_matches = difflib.get_close_matches(name, tuple(server_tags.keys()))
             if not possible_matches:
                 raise RuntimeError('Tag not found.')
             nl = '\n'
             raise RuntimeError(f'Tag not found. Did you mean...\n{nl.join(possible_matches)}')
 
-    @commands.group(invoke_without_command=True)
-    async def tag(self, *, name: str):
+    async def set_tag(self, server, name, tag_info):
+        server_tags = self.db.get(server.id, {})
+        try:
+            server_tags[name] = tag_info
+            await self.db.put(server.id, server_tags)
+        except Exception as e:
+            print(e)
+
+    async def remove_tag(self, server, name):
+        server_tags = self.db.get(server.id, {})
+        del server_tags[name]
+        try:
+            await self.db.put(server.id, server_tags)
+        except Exception as e:
+            print(e)
+
+    @commands.group(no_pm=True, pass_context=True, invoke_without_command=True)
+    async def tag(self, ctx: commands.Context, *, name: str):
         """Tag text to be retrieved later.
 
         If a subcommand is not called, this will search for the tag with the given name and display it."""
 
         lookup = name.lower()
         try:
-            tag = self.get_tag(lookup)
+            tag = self.get_tag(ctx.message.server, lookup)
         except RuntimeError as e:
             return await self.bot.say(e)
 
         tag.uses += 1
         await self.bot.say(tag)
-        await self.db.put(tag.name, tag)
+        await self.set_tag(ctx.message.server, tag.name, tag)
 
     @tag.error
     async def tag_error(self, error, ctx):
@@ -131,11 +142,12 @@ class Tags:
         except RuntimeError as e:
             return await self.bot.say(e, delete_after=10)
 
-        if lookup in self.db:
-            return await self.bot.say(f'A tag with the name of "{lookup}" already exists.', delete_after=10)
+        if lookup in self.db.get(ctx.message.server.id, {}):
+            return await self.bot.say(f'A tag with the name of "{lookup}" already exists in this server.',
+                                      delete_after=10)
 
-        await self.db.put(lookup, TagInfo(name, content, ctx.message.author.id,
-                                          created_at=datetime.datetime.utcnow().timestamp()))
+        await self.set_tag(ctx.message.server, lookup, TagInfo(lookup, content, ctx.message.author.id,
+                                                               created_at=datetime.datetime.utcnow().timestamp()))
         await self.bot.say(f'Tag "{lookup}" successfully created.', delete_after=10)
 
     @create.error
@@ -143,26 +155,26 @@ class Tags:
         if isinstance(error, commands.MissingRequiredArgument):
             await self.bot.say('Tag ' + str(error), delete_after=10)
 
-    def top_three_tags(self):
+    def top_three_tags(self, server):
         emoji = 129351
-        ranked = sorted(self.db.all().values(), key=lambda t: t.uses, reverse=True)
+        ranked = sorted(self.db.get(server.id, {}).values(), key=lambda t: t.uses, reverse=True)
         for tag in ranked[:3]:
             yield (chr(emoji), tag)
             emoji += 1
 
-    @tag.command(aliases=['overview'])
-    async def stats(self):
+    @tag.command(aliases=['overview'], pass_context=True)
+    async def stats(self, ctx: commands.Context):
         """Gives information about the tags in the database."""
         embed = discord.Embed()
 
-        all_tag_infos = self.db.all().values()
-        total_tags = len(all_tag_infos)
+        server_tag_infos = self.db.get(ctx.message.server.id, {}).values()
+        total_tags = len(server_tag_infos)
         embed.add_field(name='Number of Tags', value=total_tags)
-        total_uses = sum(t.uses for t in all_tag_infos)
+        total_uses = sum(t.uses for t in server_tag_infos)
         embed.add_field(name='Total Tag Uses', value=total_uses)
-        embed.add_field(name='Featured Tag', value=self.featured)
+        embed.add_field(name='Placeholder', value='.')
 
-        for emoji, tag in self.top_three_tags():
+        for emoji, tag in self.top_three_tags(ctx.message.server):
             embed.add_field(name=f'{emoji} Tag', value=f'{tag.name} ({tag.uses} uses)')
 
         await self.bot.say(embed=embed)
@@ -171,7 +183,7 @@ class Tags:
         return ctx.message.author.id in [tag.owner, config.owner_id]
 
     @tag.command(pass_context=True, aliases=['change'])
-    async def edit(self, ctx, name: str, *, content: str):
+    async def edit(self, ctx: commands.Context, name: str, *, content: str):
         """Modifies an existing tag that you own.
 
         This completely replaces the existing text."""
@@ -179,7 +191,7 @@ class Tags:
         content = self.clean_tag_content(content)
         lookup = name.lower()
         try:
-            tag = self.get_tag(lookup)
+            tag = self.get_tag(ctx.message.server, lookup)
         except RuntimeError as e:
             return await self.bot.say(e)
 
@@ -187,33 +199,33 @@ class Tags:
             return await self.bot.say('Only the tag owner can edit this tag.')
 
         tag.content = content
-        await self.db.put(tag.name, tag)
+        await self.set_tag(ctx.message.server, tag.name, tag)
         await self.bot.say('Tag successfully edited.')
 
     @tag.command(pass_context=True, aliases=['delete'])
-    async def remove(self, ctx, *, name: str):
+    async def remove(self, ctx: commands.Context, *, name: str):
         """Removes a tag that you own.
 
         This is un-undoable, so don't be dumb."""
 
         lookup = name.lower()
         try:
-            tag = self.get_tag(lookup)
+            tag = self.get_tag(ctx.message.server, lookup)
         except RuntimeError as e:
             return await self.bot.say(e)
 
         if not self.can_modify(ctx, tag):
             return await self.bot.say('Only the tag owner can delete this tag.')
 
-        await self.db.remove(lookup)
+        await self.remove_tag(ctx.message.server, lookup)
 
     @tag.command(pass_context=True, aliases=['owner'])
-    async def info(self, ctx, *, name: str):
+    async def info(self, ctx: commands.Context, *, name: str):
         """Retrieves information about a tag."""
 
         lookup = name.lower()
         try:
-            tag = self.get_tag(lookup)
+            tag = self.get_tag(ctx.message.server, lookup)
         except RuntimeError as e:
             return await self.bot.say(e)
 
@@ -234,11 +246,11 @@ class Tags:
             await self.bot.say(e)
 
     @tag.command(name='list', pass_context=True)
-    async def _list(self, ctx, *, member: discord.Member = None):
+    async def _list(self, ctx: commands.Context, *, member: discord.Member = None):
         """Lists all tags that belong to you or someone else."""
 
         owner = ctx.message.author if member is None else member
-        tags = [tag.name for tag in self.db.all().values() if tag.owner == owner.id]
+        tags = [tag.name for tag in self.db.get(ctx.message.server.id, {}).values() if tag.owner == owner.id]
         tags.sort()
 
         if tags:
@@ -247,10 +259,10 @@ class Tags:
             await self.bot.say('No tag found.', delete_after=10)
 
     @tag.command(name='all', pass_context=True)
-    async def _all(self, ctx):
+    async def _all(self, ctx: commands.Context):
         """Lists ALL THE TAGS alphabetically."""
 
-        tags = [tag_name for tag_name in self.db.all().keys()]
+        tags = [tag_name for tag_name in self.db.get(ctx.message.server.id, {}).keys()]
         tags.sort()
 
         await self.show_tags_list(tags, ctx)
@@ -258,7 +270,7 @@ class Tags:
     @tag.command(pass_context=True)
     async def top(self, ctx, *, count: int = 10):
         """Lists the top n tags."""
-        tags = [tag.name for tag in sorted(self.db.all().values(), key=lambda t: t.uses, reverse=True)]
+        tags = [tag.name for tag in sorted(self.db.get(ctx.message.server.id, {}).values(), key=lambda t: t.uses, reverse=True)]
 
         count = min(max(10, count), len(tags))
 
@@ -272,7 +284,7 @@ class Tags:
         if len(query) < 2:
             return await self.bot.say('Query must be at least 2 characters.', delete_after=10)
 
-        tags = [tag_name for tag_name in self.db.all().keys() if query in tag_name]
+        tags = [tag_name for tag_name in self.db.get(ctx.message.server.id, {}).keys() if query in tag_name]
         tags.sort()
 
         if tags:
@@ -286,19 +298,19 @@ class Tags:
             await self.bot.say('Missing query.', delete_after=10)
 
     @tag.command(name='random', pass_context=True)
-    async def _random(self, ctx, *, query: str):
+    async def _random(self, ctx: commands.Context, *, query: str):
         """Shows a random tag containing a substring."""
 
         if len(query) < 2:
             return await self.bot.say('Query must be at least 2 characters.', delete_after=10)
 
-        tags = [tag for tag in self.db.all().values() if query in tag.name]
+        tags = [tag for tag in self.db.get(ctx.message.server.id, {}).values() if query in tag.name]
 
         if tags:
             tag = random.choice(tags)
             tag.uses += 1
             await self.bot.say(f'Randomly selected *"{tag.name}"*:\n{tag}')
-            await self.db.put(tag.name, tag)
+            await self.set_tag(ctx.message.server, tag.name, tag)
         else:
             await self.bot.say('No tags found.', delete_after=10)
 
@@ -306,15 +318,6 @@ class Tags:
     async def random_error(self, error, ctx):
         if isinstance(error, commands.MissingRequiredArgument):
             await self.bot.say('Missing query.', delete_after=10)
-
-    @tag.command()
-    @checks.is_owner()
-    async def feature(self, *, name: str):
-        """Sets a tag to be the featured tag."""
-        self.featured = name
-
-        with open('featured.txt', 'w') as f:
-            f.write(self.featured)
 
 
 def setup(bot):
