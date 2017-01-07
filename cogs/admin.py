@@ -48,7 +48,7 @@ class Admin:
 
     @commands.command(no_pm=True, pass_context=True)
     @checks.permissions(manage_server=True)
-    async def unignore(self, ctx, *, member: discord.Member):
+    async def unignore(self, ctx: commands.Context, *, member: discord.Member):
         """Unignores a member."""
 
         server_id = ctx.message.server.id
@@ -60,6 +60,15 @@ class Admin:
             await self.bot.say(f'{member} unignored.', delete_after=10)
         except ValueError:
             await self.bot.say(f'{member} is not ignored.', delete_after=10)
+
+    @commands.command(hidden=True, np_pm=True, pass_context=True, aliases=['ignorelist', 'ignores'])
+    async def ignore_list(self, ctx: commands.Context):
+        """Lists all people ignored in the server."""
+
+        server_ignores = self.db.get('ignores', {}).get(ctx.message.server.id, [])
+
+        if server_ignores:
+            await self.bot.say(', '.join(server_ignores))
 
     @commands.group(no_pm=True, pass_context=True)
     @checks.permissions(manage_messages=True)
