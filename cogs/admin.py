@@ -38,13 +38,13 @@ class Admin:
         server_ignores = ignores.get(server_id, [])
 
         if member.id in server_ignores:
-            await self.bot.say(f'{member} already ignored.')
+            await self.bot.say(f'{member} already ignored.', delete_after=10)
             return
 
         server_ignores.append(member.id)
         ignores[server_id] = server_ignores
         await self.db.put('ignores', ignores)
-        await self.bot.say(f'{member} has been ignored.')
+        await self.bot.say(f'{member} has been ignored.', delete_after=10)
 
     @commands.command(no_pm=True, pass_context=True)
     @checks.permissions(manage_server=True)
@@ -53,12 +53,13 @@ class Admin:
 
         server_id = ctx.message.server.id
         ignores = self.db.get('ignores', {})
-        server_ignores = ignores.get(server_id, [])
 
         try:
-            server_ignores.remove(member.id)
+            ignores[server_id].remove(member.id)
+            await self.db.put('ignores', ignores)
+            await self.bot.say(f'{member} unignored.', delete_after=10)
         except ValueError:
-            await self.bot.say(f'{member} is not ignored.')
+            await self.bot.say(f'{member} is not ignored.', delete_after=10)
 
     @commands.group(no_pm=True, pass_context=True)
     @checks.permissions(manage_messages=True)
