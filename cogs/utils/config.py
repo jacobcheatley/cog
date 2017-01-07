@@ -8,7 +8,6 @@ initial_extensions = [
     'cogs.admin',
     'cogs.forwarding',
     'cogs.fun',
-    'cogs.games',
     'cogs.images',
     'cogs.info',
     'cogs.replies',

@@ -26,7 +26,7 @@ class TagInfo:
         embed.add_field(name='Owner', value=f'<@!{self.owner}>')
         embed.add_field(name='Uses', value=self.uses)
 
-        ranked = sorted(db.all().values(), key=lambda t: t.uses, reverse=True)
+        ranked = sorted(db.values(), key=lambda t: t.uses, reverse=True)
         try:
             embed.add_field(name='Rank', value=ranked.index(self) + 1)
         except:
@@ -229,7 +229,7 @@ class Tags:
         except RuntimeError as e:
             return await self.bot.say(e)
 
-        embed = await tag.embed(ctx, self.db)
+        embed = await tag.embed(ctx, self.db.get(ctx.message.server.id, {}))
         await self.bot.say(embed=embed)
 
     @info.error
