@@ -26,4 +26,3 @@ def permissions(**perms):
         return check_permissions(ctx, perms)
 
     return commands.check(predicate)
-
