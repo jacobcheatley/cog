@@ -192,7 +192,7 @@ class Fun:
     @text.command(aliases=['c', '\U0001f44f'])
     async def clap(self, *, text: str):
         """STOP :clap: APPROPRIATING :clap: BLACK :clap: CULTURE"""
-        await self.bot.say(text.replace(' ', '\U0001f44f'))
+        await self.bot.say(text.replace(' ', '\U0001f44f') + random.randint(1, 5) * '\U0001f44f')
 
 
 def setup(bot):
