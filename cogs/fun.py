@@ -111,6 +111,84 @@ class Fun:
         p.embed.colour = 0x738bd7
         await p.paginate()
 
+    @commands.group(aliases=['t'])
+    async def text(self):
+        """A variety of subcommands for modifying text in D A N K ways."""
+        pass
+
+    @text.command(aliases=['a'])
+    async def aesthetic(self, *, text: str):
+        """A E S T H E T I C"""
+        result = ' '.join((c for c in text.upper()))
+        await self.bot.say(result)
+
+    @text.command(aliases=['1337', 'l'])
+    async def leet(self, *, text: str):
+        """1337 5P34K"""
+        replacements = {
+            'A': '4',
+            'B': ['|3', 'B'],
+            'C': ['<', 'C'],
+            'D': ['|)', 'D'],
+            'E': '3',
+            'I': '1',
+            'L': '|',
+            'M': [r'/\\/\\', 'M'],
+            'N': [r'|\\|', 'N'],
+            'O': '0',
+            'S': ['5', '$'],
+            'T': '7',
+            'V': [r'\\/', 'V'],
+            'W': [r'\\/\\/', 'W'],
+            'X': ['><', 'X', 'xx'],
+            'Z': '2'
+        }
+
+        def get_replacement(c: str):
+            if c in replacements:
+                if isinstance(replacements[c], str):
+                    return replacements[c]
+                return random.choice(replacements[c])
+            return random.choice([c, c.lower()])
+
+        result = ''.join((get_replacement(c) for c in text.upper()))
+        await self.bot.say(result)
+
+    @text.command(aliases=['e'])
+    async def emoji(self, *, text: str):
+        """lul xd emoji"""
+        replacements = {
+            '1': ':one:',
+            '2': ':two:',
+            '3': ':three:',
+            '4': ':four:',
+            '5': ':five:',
+            '6': ':six:',
+            '7': ':seven:',
+            '8': ':eight:',
+            '9': ':nine:',
+            '0': ':zero:',
+            '!': ':exclamation:',
+            '?': ':question:',
+            '<': ':arrow_backward:',
+            '>': ':arrow_forward:',
+            '^': ':arrow_up_small:',
+            '+': ':heavy_plus_sign:',
+            '-': ':heavy_minus_sign:',
+            '/': ':heavy_division_sign:',
+            '*': ':heavy_multiplication_x:'
+        }
+
+        def get_replacement(c: str):
+            if c in 'abcdefghijklmnopqrstuvwxyz':
+                return f':regional_indicator_{c}:'
+            elif c in replacements:
+                return replacements[c]
+            return c
+
+        result = ''.join((get_replacement(c) for c in text.lower()))
+        await self.bot.say(result)
+
 
 def setup(bot):
     bot.add_cog(Fun(bot))
