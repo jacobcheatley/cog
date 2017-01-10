@@ -53,7 +53,7 @@ class Fun:
 
     @commands.command(aliases=['r'])
     async def roll(self, *, dice: str = 'd20'):
-        """Rolls dice with advanced formatting. For DnD.
+        """Rolls dice with advanced formatting. For D&D.
 
         Format: (Nd)X(±C). Things in () are optional.
         Include adv or dis after the dice format for advantage/disadvantage.
@@ -82,7 +82,7 @@ class Fun:
                 return await self.bot.say(f'Invalid dice format "{dice_group}"')
 
         embed = discord.Embed()
-        embed.set_author(name='DnD Dice Roller', icon_url='http://i.imgur.com/FT8VXRQ.png')
+        embed.set_author(name='D&D Dice Roller', icon_url='http://i.imgur.com/FT8VXRQ.png')
         embed.colour = 0xe51e25
 
         totals = []
