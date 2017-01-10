@@ -3,8 +3,9 @@ from discord.ext import commands
 from .utils import paginator
 import random
 import re
+import math
 
-roll_pattern = re.compile(r'^(\d*)d(\d+)(?:(\+|-)(\d+))?')
+roll_pattern = re.compile(r'^([+-]?\d+)?d(\d+)([+-]?\d+)?(adv|dis)?$')
 question_split_pattern = re.compile(r'(?:,\W+or|or|,)\W+')
 
 mouths = [[" ͜ʖ"], ["v"], ["ᴥ"], ["ᗝ"], ["Ѡ"], ["ᗜ"], ["Ꮂ"], ["ᨓ"], ["ᨎ"], ["ヮ"], ["╭͜ʖ╮"], [" ͟ل͜"], [" ͟ʖ"], [" ʖ̯"],
@@ -50,17 +51,93 @@ class Fun:
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
-    async def roll(self, dice: str):
-        """Rolls dice in the format NdX±C"""
-        try:
-            num_dice, size, sign, mod = roll_pattern.findall(dice)[0]
-            dice_roll = sum((random.randint(1 if int(size) else 0, int(size)) for _ in range(int(num_dice or 1))))
-            constant = (int(mod) if sign == '+' else -int(mod)) if mod else 0
-            await self.bot.say('Rolled a {}'.format(dice_roll + constant))
-        except Exception as e:
-            print(e)
-            await self.bot.say('Invalid dice format (NdX+C)')
+    @commands.command(aliases=['r'])
+    async def roll(self, *, dice: str = 'd6'):
+        """Rolls dice with advanced formatting. For DnD.
+
+        Format: (Nd)X(±C). Things in () are optional.
+        Include adv or dis after the dice format for advantage/disadvantage.
+        To do math with multiple sets of dice, use commas.
+        e.g.
+        !roll 1d20+2 -> self explanatory
+        !roll 1d20 dis -> rolls 1d20 with disadvantage
+        !roll 1d20+2, + 1d4 -> rolls 1d20+2, then adds another 1d4
+        !roll 1d10 adv, - 1d8 -> rolls 1d10 with advantage, then removes 1d8"""
+
+        to_roll = []
+        dice_groups = dice.replace(' ', '').split(',')
+        for dice_group in dice_groups:
+            match = roll_pattern.match(dice_group)
+            # Group 1 = Number of Dice (+ or -) (optional)
+            # Group 2 = Value of Dice
+            # Group 3 = Modifier (+ or -) (optional)
+            # Group 4 = Adv/Dis (optional)
+            if match:
+                num = 1 if match.group(1) is None else int(match.group(1))
+                value = int(match.group(2))
+                mod = 0 if match.group(3) is None else int(match.group(3))
+                adv = match.group(4)
+                to_roll.append((num, value, mod, adv))
+            else:
+                return await self.bot.say(f'Invalid dice format "{dice_group}"')
+
+        embed = discord.Embed()
+        embed.set_author(name='DnD Dice Roller', icon_url='http://i.imgur.com/FT8VXRQ.png')
+
+        totals = []
+
+        for index, roll_me in enumerate(to_roll):
+            string_parts = []
+            subtotals = []
+
+            # Roll once or twice
+            for _ in range(2 if roll_me[3] is not None else 1):
+                rolls = [random.randint(1, roll_me[1]) for _ in range(abs(roll_me[0]))]
+                total_rolls = int(math.copysign(1, roll_me[0])) * sum(rolls)
+                subtotal = total_rolls + roll_me[2]
+                subtotals.append(subtotal)
+                string_parts.append(self.roll_format(rolls, roll_me[2], subtotal, roll_me[1]))
+
+            # Choose and format for advantage/disadvantage
+            if roll_me[3] is not None:
+                if roll_me[3] == 'adv':
+                    chosen_index = subtotals.index(max(subtotals))
+                else:
+                    chosen_index = subtotals.index(min(subtotals))
+                lost_index = 0 if chosen_index == 1 else 1
+
+                totals.append(subtotals[chosen_index])
+                string_parts[lost_index] = f'~~{string_parts[lost_index]}~~'
+            else:
+                totals.append(subtotals[0])
+
+            # Final formatting and adding to embed
+            prefix = 'Rolling' if index == 0 else 'Plus' if roll_me[0] > 0 else 'Minus'
+            embed.add_field(name=f'{prefix} {self.dice_format(*roll_me)}', value='\n'.join(string_parts))
+
+        if len(totals) > 1:
+            embed.add_field(name='Final',
+                            value=''.join('{0:+}'.format(x) for x in totals) + f' = **{sum(totals)}**',
+                            inline=False)
+
+        await self.bot.say(embed=embed)
+
+    @staticmethod
+    def dice_format(num, value, mod, adv):
+        adv_string = '' if adv is None else ' with advantage' if adv == 'adv' else ' with disadvantage'
+        return f'{abs(num)}d{value}{mod:+}{adv_string}'
+
+    @staticmethod
+    def roll_format(rolls, mod, total, max):
+        rolls_string = ', '.join(str(roll) for roll in rolls) if mod or len(rolls) > 1 else ''
+        mod = f' {"+" if mod > 0 else "-"} {abs(mod)}' if mod != 0 else ''
+        final = f' = **{abs(total)}**'
+        if len(rolls) == 1 and max == 20:
+            crit = ' ***CRITICAL SUCCESS***' if rolls[0] == 20 else ' ***CRITICAL FAILURE***' if rolls[0] == 1 else ''
+        else:
+            crit = ''
+
+        return f'{rolls_string}{mod}{final}{crit}'
 
     @commands.command()
     async def flip(self):
