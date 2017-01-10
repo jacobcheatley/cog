@@ -80,7 +80,7 @@ class Fun:
                 adv = match.group(4)
                 to_roll.append((num, value, mod, adv))
             else:
-                return await self.bot.say(f'Invalid dice format "{dice_group}"')
+                return await self.bot.say(f'Invalid dice format "{dice_group}"', delete_after=10)
 
         embed = discord.Embed()
         embed.set_author(name='D&D Dice Roller', icon_url='http://i.imgur.com/FT8VXRQ.png')
