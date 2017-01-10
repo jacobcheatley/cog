@@ -52,7 +52,7 @@ class Fun:
         self.bot = bot
 
     @commands.command(aliases=['r'])
-    async def roll(self, *, dice: str = 'd6'):
+    async def roll(self, *, dice: str = 'd20'):
         """Rolls dice with advanced formatting. For DnD.
 
         Format: (Nd)X(±C). Things in () are optional.
@@ -83,6 +83,7 @@ class Fun:
 
         embed = discord.Embed()
         embed.set_author(name='DnD Dice Roller', icon_url='http://i.imgur.com/FT8VXRQ.png')
+        embed.colour = 0xe51e25
 
         totals = []
 
