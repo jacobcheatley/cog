@@ -87,7 +87,7 @@ class Info:
         await self._setbasic(member, 'desc', desc)
         await self.bot.say('Updated your description.', delete_after=10)
 
-    @commands.command(pass_context=True, hidden=True)
+    @commands.command(pass_context=True, hidden=True, aliases=['addfield'])
     async def setfield(self, ctx: commands.Context, field: str, *, value: str):
         """Sets a custom field for whois information.
         You can have a maximum of 3 custom fields at a time.
