@@ -330,6 +330,15 @@ class Fun:
 
         await self.bot.say(''.join(get_replacement(c.lower()) for c in reversed(text)))
 
+    @text.command(aliases=['b', '0', '1'])
+    async def binary(self, *, text: str):
+        """01100010 01101001 01101110 01100001 01110010 01111001"""
+        result = ' '.join('{0:08b}'.format(ord(c)) for c in text)
+        if len(result) > 2000:
+            await self.bot.say(result[:1997] + '...')
+        else:
+            await self.bot.say(result)
+
 
 def setup(bot):
     bot.add_cog(Fun(bot))
