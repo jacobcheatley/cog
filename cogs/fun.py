@@ -66,7 +66,7 @@ class Fun:
         !roll 1d20 dis -> rolls 1d20 with disadvantage
         !roll 1d20+2, + 1d4 -> rolls 1d20+2, then adds another 1d4
         !roll 1d10 adv, - 1d8 -> rolls 1d10 with advantage, then removes 1d8
-        !roll 1d10 adv, - 1d8,r3 -> same as above but the roll will be preformed 3 times"""
+        !roll 1d10 adv, - 1d8,r3 -> same as above but the roll will be performed 3 times"""
 
         to_roll = []
         dice_groups = dice.replace(' ', '').split(',')
