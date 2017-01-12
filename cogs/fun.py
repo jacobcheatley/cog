@@ -93,20 +93,19 @@ class Fun:
             else:
                 return await self.bot.say(f'Invalid dice format "{dice_group}"', delete_after=10)
 
-
         embed = discord.Embed()
         embed.set_author(name='D&D Dice Roller', icon_url='http://i.imgur.com/FT8VXRQ.png')
         embed.colour = 0xe51e25
 
-        totals = []
-
         for _ in range(repeat):
+            totals = []
+
             for index, roll_me in enumerate(to_roll):
                 string_parts = []
                 subtotals = []
 
                 # Roll once or twice
-                for _ in range(2 if roll_me[3] is not None else 1):
+                for reroll in range(2 if roll_me[3] is not None else 1):
                     rolls = [random.randint(1, roll_me[1]) for _ in range(abs(roll_me[0]))]
                     total_rolls = int(math.copysign(1, roll_me[0])) * sum(rolls)
                     subtotal = total_rolls + roll_me[2]
