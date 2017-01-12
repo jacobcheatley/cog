@@ -193,14 +193,14 @@ class Tags:
         try:
             tag = self.get_tag(ctx.message.server, lookup)
         except RuntimeError as e:
-            return await self.bot.say(e)
+            return await self.bot.say(e, delete_after=10)
 
         if not self.can_modify(ctx, tag):
-            return await self.bot.say('Only the tag owner can edit this tag.')
+            return await self.bot.say('Only the tag owner can edit this tag.', delete_after=10)
 
         tag.content = content
         await self.set_tag(ctx.message.server, tag.name, tag)
-        await self.bot.say('Tag successfully edited.')
+        await self.bot.say('Tag successfully edited.', delete_after=10)
 
     @tag.command(pass_context=True, aliases=['delete'])
     async def remove(self, ctx: commands.Context, *, name: str):
@@ -212,12 +212,13 @@ class Tags:
         try:
             tag = self.get_tag(ctx.message.server, lookup)
         except RuntimeError as e:
-            return await self.bot.say(e)
+            return await self.bot.say(e, delete_after=10)
 
         if not self.can_modify(ctx, tag):
-            return await self.bot.say('Only the tag owner can delete this tag.')
+            return await self.bot.say('Only the tag owner can delete this tag.', delete_after=10)
 
         await self.remove_tag(ctx.message.server, lookup)
+        await self.bot.say(f'Successfully deleted tag "{lookup}"', delete_after=10)
 
     @tag.command(pass_context=True, aliases=['owner'])
     async def info(self, ctx: commands.Context, *, name: str):
@@ -227,7 +228,7 @@ class Tags:
         try:
             tag = self.get_tag(ctx.message.server, lookup)
         except RuntimeError as e:
-            return await self.bot.say(e)
+            return await self.bot.say(e, delete_after=10)
 
         embed = await tag.embed(ctx, self.db.get(ctx.message.server.id, {}))
         await self.bot.say(embed=embed)
@@ -243,7 +244,7 @@ class Tags:
             p.embed.colour = 0x738bd7
             await p.paginate()
         except Exception as e:
-            await self.bot.say(e)
+            await self.bot.say(e, delete_after=10)
 
     @tag.command(name='list', pass_context=True)
     async def _list(self, ctx: commands.Context, *, member: discord.Member = None):
