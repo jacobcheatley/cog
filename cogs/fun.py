@@ -253,34 +253,12 @@ class Fun:
         return ' '.join((c for c in text.upper()))
 
     @staticmethod
-    def leet(text: str):
-        replacements = {
-            'A': '4',
-            'B': ['|3', 'B'],
-            'C': ['<', 'C'],
-            'D': ['|)', 'D'],
-            'E': '3',
-            'I': '1',
-            'L': '|',
-            'M': [r'/\\/\\', 'M'],
-            'N': [r'|\\|', 'N'],
-            'O': '0',
-            'S': ['5', '$'],
-            'T': '7',
-            'V': [r'\\/', 'V'],
-            'W': [r'\\/\\/', 'W'],
-            'X': ['><', 'X', 'xx'],
-            'Z': '2'
-        }
+    def binary(text: str):
+        return ' '.join('{0:08b}'.format(ord(c)) for c in text)
 
-        def get_replacement(c: str):
-            if c in replacements:
-                if isinstance(replacements[c], str):
-                    return replacements[c]
-                return random.choice(replacements[c])
-            return random.choice([c, c.lower()])
-
-        return ''.join((get_replacement(c) for c in text.upper()))
+    @staticmethod
+    def clap(text: str):
+        return text.replace(' ', '\U0001f44f') + random.randint(1, 5) * '\U0001f44f'
 
     @staticmethod
     def emoji(text: str):
@@ -316,8 +294,34 @@ class Fun:
         return ''.join((get_replacement(c) for c in text.lower()))
 
     @staticmethod
-    def clap(text: str):
-        return text.replace(' ', '\U0001f44f') + random.randint(1, 5) * '\U0001f44f'
+    def leet(text: str):
+        replacements = {
+            'A': '4',
+            'B': ['|3', 'B'],
+            'C': ['<', 'C'],
+            'D': ['|)', 'D'],
+            'E': '3',
+            'I': '1',
+            'L': '|',
+            'M': [r'/\\/\\', 'M'],
+            'N': [r'|\\|', 'N'],
+            'O': '0',
+            'S': ['5', '$'],
+            'T': '7',
+            'V': [r'\\/', 'V'],
+            'W': [r'\\/\\/', 'W'],
+            'X': ['><', 'X', 'xx'],
+            'Z': '2'
+        }
+
+        def get_replacement(c: str):
+            if c in replacements:
+                if isinstance(replacements[c], str):
+                    return replacements[c]
+                return random.choice(replacements[c])
+            return random.choice([c, c.lower()])
+
+        return ''.join((get_replacement(c) for c in text.upper()))
 
     @staticmethod
     def upsidedown(text: str):
@@ -374,10 +378,6 @@ class Fun:
             return c
 
         return ''.join(get_replacement(c.lower()) for c in reversed(text))
-
-    @staticmethod
-    def binary(text: str):
-        return ' '.join('{0:08b}'.format(ord(c)) for c in text)
 
 
 def setup(bot):
