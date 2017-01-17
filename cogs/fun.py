@@ -214,6 +214,7 @@ class Fun:
           leet/1337/l   = 1337 5P34K
           reversed/r    = desrever
           upsidedown/u  = uʍop ǝpısdn
+          vowels/v      = vwls
         To combine multiple modifiers just comma separate them with no spaces."""
         mapping = [
             ({'aesthetic', 'a'}, self.aesthetic),
@@ -223,6 +224,7 @@ class Fun:
             ({'leet', '1337', 'l'}, self.leet),
             ({'reversed', 'r'}, lambda t: t[::-1]),
             ({'upsidedown', 'u'}, self.upsidedown),
+            ({'vowels', 'v'}, self.vowels)
         ]
 
         mod_list = modifiers.lower().split(',')
@@ -378,6 +380,10 @@ class Fun:
             return c
 
         return ''.join(get_replacement(c.lower()) for c in reversed(text))
+
+    @staticmethod
+    def vowels(text: str):
+        return ''.join(c for c in text if c not in 'aeiouAEIOU')
 
 
 def setup(bot):
