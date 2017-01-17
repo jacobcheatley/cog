@@ -202,20 +202,51 @@ class Fun:
         p.embed.colour = 0x738bd7
         await p.paginate()
 
-    @commands.group(aliases=['t'])
-    async def text(self):
-        """A variety of subcommands for modifying text in D A N K ways."""
-        pass
+    @commands.group(aliases=['t'], invoke_without_command=True)
+    async def text(self, modifiers: str, *, text: str):
+        """A variety of ways to modify text to make it D A N K.
 
-    @text.command(aliases=['a'])
-    async def aesthetic(self, *, text: str):
-        """A E S T H E T I C"""
-        result = ' '.join((c for c in text.upper()))
-        await self.bot.say(result)
+        Possible modifiers:
+          aesthetic/a   = A E S T H E T I C
+          leet/1337/l   = 1337 5P34K
+          emoji/e       = lul xd emoji
+          clap/c/:clap: = STOP :clap: APPROPRIATING :clap: BLACK :clap: CULTURE
+          upsidedown/u  = uʍop ǝpısdn
+          binary/b/0/1  = 01100010 01101001 01101110 01100001 01110010 01111001
+        To combine multiple modifiers just comma separate them with no spaces."""
+        mapping = [
+            ({'aesthetic', 'a'}, self.aesthetic),
+            ({'leet', '1337', 'l'}, self.leet),
+            ({'emoji', 'e'}, self.emoji),
+            ({'clap', 'c', '\U0001f44f'}, self.clap),
+            ({'upsidedown', 'u'}, self.upsidedown),
+            ({'binary', 'b', '0', '1'}, self.binary)
+        ]
 
-    @text.command(aliases=['1337', 'l'])
-    async def leet(self, *, text: str):
-        """1337 5P34K"""
+        mod_list = modifiers.lower().split(',')
+        for mod in mod_list:
+            found = False
+            for key, func in mapping:
+                if mod in key:
+                    text = func(text)
+                    found = True
+                    break
+            if not found:
+                return await self.bot.say(f'Couldn\'t find the modifier "{mod}"', delete_after=10)
+            if len(text) > 2000:
+                break
+
+        if len(text) > 2000:
+            await self.bot.say(text[:1997] + '...')
+        else:
+            await self.bot.say(text)
+
+    @staticmethod
+    def aesthetic(text: str):
+        return ' '.join((c for c in text.upper()))
+
+    @staticmethod
+    def leet(text: str):
         replacements = {
             'A': '4',
             'B': ['|3', 'B'],
@@ -242,12 +273,10 @@ class Fun:
                 return random.choice(replacements[c])
             return random.choice([c, c.lower()])
 
-        result = ''.join((get_replacement(c) for c in text.upper()))
-        await self.bot.say(result)
+        return ''.join((get_replacement(c) for c in text.upper()))
 
-    @text.command(aliases=['e'])
-    async def emoji(self, *, text: str):
-        """lul xd emoji"""
+    @staticmethod
+    def emoji(text: str):
         replacements = {
             '1': ':one:',
             '2': ':two:',
@@ -277,17 +306,14 @@ class Fun:
                 return replacements[c]
             return c
 
-        result = ''.join((get_replacement(c) for c in text.lower()))
-        await self.bot.say(result)
+        return ''.join((get_replacement(c) for c in text.lower()))
 
-    @text.command(aliases=['c', '\U0001f44f'])
-    async def clap(self, *, text: str):
-        """STOP :clap: APPROPRIATING :clap: BLACK :clap: CULTURE"""
-        await self.bot.say(text.replace(' ', '\U0001f44f') + random.randint(1, 5) * '\U0001f44f')
+    @staticmethod
+    def clap(text: str):
+        return text.replace(' ', '\U0001f44f') + random.randint(1, 5) * '\U0001f44f'
 
-    @text.command(aliases=['u'])
-    async def upsidedown(self, *, text: str):
-        """uʍop ǝpısdn"""
+    @staticmethod
+    def upsidedown(text: str):
         replacements = {
             'a': '\u0250',
             'b': 'q',
@@ -340,16 +366,11 @@ class Fun:
                 return replacements[c]
             return c
 
-        await self.bot.say(''.join(get_replacement(c.lower()) for c in reversed(text)))
+        return ''.join(get_replacement(c.lower()) for c in reversed(text))
 
-    @text.command(aliases=['b', '0', '1'])
-    async def binary(self, *, text: str):
-        """01100010 01101001 01101110 01100001 01110010 01111001"""
-        result = ' '.join('{0:08b}'.format(ord(c)) for c in text)
-        if len(result) > 2000:
-            await self.bot.say(result[:1997] + '...')
-        else:
-            await self.bot.say(result)
+    @staticmethod
+    def binary(text: str):
+        return ' '.join('{0:08b}'.format(ord(c)) for c in text)
 
 
 def setup(bot):
