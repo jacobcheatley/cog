@@ -202,25 +202,27 @@ class Fun:
         p.embed.colour = 0x738bd7
         await p.paginate()
 
-    @commands.group(aliases=['t'], invoke_without_command=True)
+    @commands.command(aliases=['t'])
     async def text(self, modifiers: str, *, text: str):
         """A variety of ways to modify text to make it D A N K.
 
         Possible modifiers:
           aesthetic/a   = A E S T H E T I C
-          leet/1337/l   = 1337 5P34K
-          emoji/e       = lul xd emoji
+          binary/0/1/b  = 01100010 01101001 01101110 01100001 01110010 01111001
           clap/c/:clap: = STOP :clap: APPROPRIATING :clap: BLACK :clap: CULTURE
+          emoji/e       = lul xd emoji
+          leet/1337/l   = 1337 5P34K
+          reversed/r    = desrever
           upsidedown/u  = uʍop ǝpısdn
-          binary/b/0/1  = 01100010 01101001 01101110 01100001 01110010 01111001
         To combine multiple modifiers just comma separate them with no spaces."""
         mapping = [
             ({'aesthetic', 'a'}, self.aesthetic),
-            ({'leet', '1337', 'l'}, self.leet),
-            ({'emoji', 'e'}, self.emoji),
+            ({'binary', '0', '1', 'b'}, self.binary),
             ({'clap', 'c', '\U0001f44f'}, self.clap),
+            ({'emoji', 'e'}, self.emoji),
+            ({'leet', '1337', 'l'}, self.leet),
+            ({'reversed', 'r'}, lambda t: t[::-1]),
             ({'upsidedown', 'u'}, self.upsidedown),
-            ({'binary', 'b', '0', '1'}, self.binary)
         ]
 
         mod_list = modifiers.lower().split(',')
@@ -240,6 +242,11 @@ class Fun:
             await self.bot.say(text[:1997] + '...')
         else:
             await self.bot.say(text)
+
+    @text.error
+    async def text_error(self, error, ctx):
+        if isinstance(error, commands.MissingRequiredArgument):
+            await self.bot.say('You need to pass in both modifier(s) and text to modify.', delete_after=10)
 
     @staticmethod
     def aesthetic(text: str):
