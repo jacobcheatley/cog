@@ -285,6 +285,7 @@ class Tags:
         if len(query) < 2:
             return await self.bot.say('Query must be at least 2 characters.', delete_after=10)
 
+        query = query.lower()
         tags = [tag_name for tag_name in self.db.get(ctx.message.server.id, {}).keys() if query in tag_name]
         tags.sort()
 
