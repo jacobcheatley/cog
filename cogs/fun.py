@@ -213,6 +213,7 @@ class Fun:
           emoji/e       = lul xd emoji
           leet/1337/l   = 1337 5P34K
           reversed/r    = desrever
+          spongebob/s   = sPonGEboB TexT wITH raNDoM cAps
           upsidedown/u  = uʍop ǝpısdn
           vowels/v      = vwls
         To combine multiple modifiers just comma separate them with no spaces."""
@@ -223,6 +224,7 @@ class Fun:
             ({'emoji', 'e'}, self.emoji),
             ({'leet', '1337', 'l'}, self.leet),
             ({'reversed', 'r'}, lambda t: t[::-1]),
+            ({'spongebob', 's'}, self.spongebob),
             ({'upsidedown', 'u'}, self.upsidedown),
             ({'vowels', 'v'}, self.vowels)
         ]
@@ -324,6 +326,10 @@ class Fun:
             return random.choice([c, c.lower()])
 
         return ''.join((get_replacement(c) for c in text.upper()))
+
+    @staticmethod
+    def spongebob(text: str):
+        return ''.join(random.choice([c.lower(), c.upper()]) for c in text)
 
     @staticmethod
     def upsidedown(text: str):
