@@ -22,6 +22,7 @@ class Utility:
         embed.description = message.content
         embed.set_footer(text=f'Quoted by {quoter}', icon_url=quoter.avatar_url or quoter.default_avatar_url)
         embed.colour = 0x738bd7
+        embed.timestamp = message.timestamp
         await self.bot.send_message(destination=message.channel, embed=embed)
 
     async def on_reaction_add(self, reaction: discord.Reaction, member: discord.Member):
