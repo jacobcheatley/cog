@@ -1,8 +1,10 @@
-import discord
-from discord.ext import commands
-from .utils import database, checks, config
-import psutil
 import datetime
+
+import discord
+import psutil
+from discord.ext import commands
+
+from .utils import database, checks, config
 
 status_emoji = {
     'online': ':green_heart:',

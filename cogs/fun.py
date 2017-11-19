@@ -1,9 +1,11 @@
-import discord
-from discord.ext import commands
-from .utils import paginator
+import math
 import random
 import re
-import math
+
+import discord
+from discord.ext import commands
+
+from .utils import paginator
 
 roll_pattern = re.compile(r'^([+-]?\d+)?d(\d+)([+-]?\d+)?(adv|dis)?$')
 repeat_pattern = re.compile(r'^(?:repeat|r|rep)(\d+)$')

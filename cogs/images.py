@@ -1,10 +1,8 @@
-import discord
-from discord.ext import commands
-from .utils import funcs
-from PIL import Image, ImageFont, ImageDraw
 import io
 import re
 import textwrap
+from PIL import Image, ImageFont, ImageDraw
+from discord.ext import commands
 
 
 def final(image: Image, fmt='png', **kwargs):
@@ -12,6 +10,7 @@ def final(image: Image, fmt='png', **kwargs):
     image.save(result, fmt, **kwargs)
     result.seek(0)
     return result
+
 
 # Regexes
 hex_digits = '([0-9a-fA-F]{2})'
@@ -64,7 +63,7 @@ class Images:
         draw = ImageDraw.Draw(image)
         font = ImageFont.truetype('Times_New_Roman_Bold.ttf', 26)
         lines = self.reline(text, 25, 6)
-        draw.text((340, 120-21*len(lines)), '\n'.join(lines), font=font)
+        draw.text((340, 120 - 21 * len(lines)), '\n'.join(lines), font=font)
 
         await self.bot.upload(final(image), filename='retarded.png')
 
@@ -89,7 +88,7 @@ class Images:
             return False
         else:
             o_size = image.size
-            image = image.resize((image.size[0]//2, image.size[1]//2)).resize(o_size)
+            image = image.resize((image.size[0] // 2, image.size[1] // 2)).resize(o_size)
             result = final(image, 'jpeg', quality=1)
             return result
 

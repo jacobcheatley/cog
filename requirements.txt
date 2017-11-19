@@ -1,0 +1,16 @@
+aiohttp==1.0.5
+async-timeout==2.0.0
+chardet==3.0.4
+discord.py==0.16.12
+inflect==0.2.5
+jaraco.itertools==2.1
+more-itertools==3.2.0
+multidict==3.3.2
+olefile==0.44
+Pillow==4.3.0
+psutil==5.4.1
+pytz==2017.3
+six==1.11.0
+websockets==3.4
+wolframalpha==3.0
+xmltodict==0.11.0

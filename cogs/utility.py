@@ -1,12 +1,13 @@
+import inspect
+import io
+import traceback
+import unicodedata
+from contextlib import redirect_stdout
+
 import discord
 from discord.ext import commands
-from .utils import checks
-import unicodedata
 
-import io
-from contextlib import redirect_stdout
-import inspect
-import traceback
+from .utils import checks
 
 
 class Utility:

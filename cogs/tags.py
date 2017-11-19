@@ -1,10 +1,12 @@
-import discord
-from discord.ext import commands
-from .utils import database, config, paginator, checks
-import json
 import datetime
 import difflib
+import json
 import random
+
+import discord
+from discord.ext import commands
+
+from .utils import database, config, paginator
 
 
 class TagInfo:

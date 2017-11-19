@@ -1,6 +1,6 @@
-import discord
-from discord.ext import commands
 import re
+
+import discord
 
 r_regex = re.compile(r'(?:^|\s)/(u|r)/(\S+)')
 
